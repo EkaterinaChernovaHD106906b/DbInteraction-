@@ -7,6 +7,6 @@ public class TestDB {
     @Test
     void testSelectQuery() throws SQLException {
         DbInteraction db = new DbInteraction();
-        db.stubTest();
+        db.insertInto();
     }
 }
