@@ -1,13 +1,23 @@
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.*;
+import java.util.Properties;
 
 public class DbInteraction {
     //  @SneakyThrows
-    public void executeQuery() throws SQLException {
+    public void executeQuery() throws SQLException, IOException {
         var query = "SELECT city FROM sakila.city WHERE city_id=2;";
-        try (var conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mysql?useUnicode=true&serverTimezone=UTC&useSSL=false", "root", "7VCovz0X3fyi");
+        FileInputStream fis;
+        Properties property = new Properties();
+        fis = new FileInputStream("src/test/resources/db.properties");
+        property.load(fis);
+        try (var conn = DriverManager.getConnection(property.getProperty("db.host"), property.getProperty("db.user"), property.getProperty("db.password"));
              var selectCity = conn.prepareStatement(query);) {
             try
                     (var rs = selectCity.executeQuery()) {
@@ -22,16 +32,20 @@ public class DbInteraction {
     }
 
     @SneakyThrows
-    public void stubTest() throws SQLException {
+    public void stubTest() throws SQLException, IOException {
         var countSQL = "SELECT COUNT(city) FROM sakila.city;";
+        FileInputStream fis;
+        Properties property = new Properties();
+        fis = new FileInputStream("src/test/resources/db.properties");
+        property.load(fis);
         try (
-                var conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mysql?useUnicode=true&serverTimezone=UTC&useSSL=false", "root", "7VCovz0X3fyi");
+                var conn = DriverManager.getConnection(property.getProperty("db.host"), property.getProperty("db.user"), property.getProperty("db.password"));
                 var countStmt = conn.createStatement();
         ) {
             try (var rs = countStmt.executeQuery(countSQL)) {
                 if (rs.next()) {
                     var count = rs.getInt(1);
-                    int expected = 600;
+                    int expected = 614;
                     int actual = count;
                     Assertions.assertEquals(expected, actual);
                 }
@@ -39,9 +53,13 @@ public class DbInteraction {
         }
     }
 
-    public void insertInto() throws SQLException {
+    public void insertInto() throws SQLException, IOException {
         var insertSQL = "INSERT INTO sakila.city(city, country_id) VALUES('Los Angeles', 103);";
-        try (var conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mysql?useUnicode=true&serverTimezone=UTC&useSSL=false", "root", "7VCovz0X3fyi");
+        FileInputStream fis;
+        Properties property = new Properties();
+        fis = new FileInputStream("src/test/resources/db.properties");
+        property.load(fis);
+        try (var conn = DriverManager.getConnection(property.getProperty("db.host"), property.getProperty("db.user"), property.getProperty("db.password"));
              var stmt = conn.createStatement();) {
             stmt.executeUpdate(insertSQL);
             var rs = stmt.executeQuery("SELECT country_id FROM sakila.city WHERE city = 'Los Angeles'");
